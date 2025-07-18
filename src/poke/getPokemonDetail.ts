@@ -1,26 +1,30 @@
 import axios from "axios"
-import type { PokemonDetail } from "@/types/pokemon"
 
-export async function getPokemonDetail(idOrUrl: number | string): Promise<PokemonDetail> {
+export interface PokemonDetail {
+  name: string
+  image: string
+  types: string[]
+  abilities: string[]
+  stats: { name: string; base: number }[]
+}
+
+export async function getPokemonDetail(name: string): Promise<PokemonDetail> {
   try {
-    const url =
-      typeof idOrUrl === "number"
-        ? `https://pokeapi.co/api/v2/pokemon/${idOrUrl}`
-        : idOrUrl
-    const res = await axios.get(url)
+    const res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${name}`)  // <--- URL ABSOLUTA
     const data = res.data
 
-    return {
-      id: data.id,
+    const pokemonDetail: PokemonDetail = {
       name: data.name,
+      image: data.sprites.front_default,
       types: data.types.map((t: any) => t.type.name),
+      abilities: data.abilities.map((a: any) => a.ability.name),
       stats: data.stats.map((s: any) => ({
         name: s.stat.name,
-        base_stat: s.base_stat,
+        base: s.base_stat,
       })),
-      abilities: data.abilities.map((a: any) => a.ability.name),
-      sprite: data.sprites.front_default,
     }
+
+    return pokemonDetail
   } catch (error) {
     console.error("Error fetching pokemon detail:", error)
     throw new Error("Error al obtener detalle del Pokémon")

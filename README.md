@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pokédex Profesional
 
-## Getting Started
+Buscador de Pokémon desarrollado con **Next.js**, **TypeScript**, **Material UI** y **Jest**.  
+Permite buscar Pokémon por nombre, filtrar por tipo, ver detalles, y cuenta con música de fondo.
 
-First, run the development server:
+---
+
+## 📋 Descripción
+
+Esta aplicación muestra los primeros 151 Pokémon con sus imágenes, tipos, habilidades y estadísticas.  
+Incluye búsqueda por nombre, filtro por tipo, detalles con modal, música de fondo y tests automáticos con Jest.
+
+---
+
+## 🛠 Tecnologías usadas
+
+- [Next.js](https://nextjs.org/) (Framework de React)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Material UI](https://mui.com/) (Componentes de interfaz)
+- [Axios](https://axios-http.com/) (Llamadas HTTP)
+- [Jest](https://jestjs.io/) (Testing)
+- API pública de [PokéAPI](https://pokeapi.co/)
+
+---
+
+## 🚀 Funcionalidades
+
+- 🔍 Buscar Pokémon por nombre.
+- 🎯 Filtrar Pokémon por tipo.
+- 📋 Ver detalles: tipos, habilidades y estadísticas.
+- 📊 Estadísticas visuales con barras.
+- 🔊 Reproductor de música de fondo con control.
+- 📱 Responsive y accesible.
+- 🧪 Tests automatizados con Jest.
+
+---
+
+## 📁 Estructura del proyecto
+
+- `/app/page.tsx`: Página principal con lógica de filtrado.
+- `/components/PokemonCard.tsx`: Card individual con modal de detalle.
+- `/poke/getPokemons.ts`: Función para obtener listado con tipos.
+- `/poke/getPokemonDetail.ts`: Función para obtener detalles por ID.
+- `/styles/global.css`: Estilos globales con fondo y overlay.
+- `/__tests__/`: Carpeta con tests unitarios.
+
+---
+
+## ⚙️ Instalación y ejecución local
 
 ```bash
+# Clonar repositorio
+git clone <url-del-repo>
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en modo desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

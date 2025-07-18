@@ -1,132 +1,131 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
+import { getPokemons } from "@/poke/getPokemons"
+import { getPokemonDetail } from "@/poke/getPokemonDetail"
+import { PokemonDetail } from "@/types/pokemon"
+import PokemonCard from "@/components/PokemonCard"
 import {
   Box,
   Grid,
+  TextField,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
   Typography,
-  Container,
+  Chip,
+  LinearProgress,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
-  Modal,
-  CardMedia,
-  Chip,
-  Stack,
+  InputLabel,
   IconButton,
+  Tooltip,
 } from "@mui/material"
-import CloseIcon from "@mui/icons-material/Close"
-import PokemonCard from "@/components/PokemonCard"
-import SearchBar from "@/components/SearchBar"
-import { getPokemons } from "@/poke/getPokemons"
-import { getPokemonDetail } from "@/poke/getPokemonDetail"
-import type { Pokemon, PokemonDetail } from "@/types/pokemon"
-
-const allTypes = [
-  "normal",
-  "fire",
-  "water",
-  "electric",
-  "grass",
-  "ice",
-  "fighting",
-  "poison",
-  "ground",
-  "flying",
-  "psychic",
-  "bug",
-  "rock",
-  "ghost",
-  "dragon",
-  "dark",
-  "steel",
-  "fairy",
-]
+import MusicNoteIcon from "@mui/icons-material/MusicNote"
+import CatchingPokemonIcon from '@mui/icons-material/CatchingPokemon'
 
 export default function Home() {
-  const [pokemons, setPokemons] = useState<Pokemon[]>([])
-  const [filteredPokemons, setFilteredPokemons] = useState<Pokemon[]>([])
-  const [loading, setLoading] = useState(true)
+  const [pokemons, setPokemons] = useState<PokemonDetail[]>([])
+  const [filteredPokemons, setFilteredPokemons] = useState<PokemonDetail[]>([])
   const [search, setSearch] = useState("")
-  const [typeFilter, setTypeFilter] = useState("")
-  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null)
-  const [pokemonDetail, setPokemonDetail] = useState<PokemonDetail | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
+  const [filterType, setFilterType] = useState("")
+  const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [audioPlaying, setAudioPlaying] = useState(false)
+
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     async function fetchData() {
-      const data = await getPokemons()
-      setPokemons(data)
-      setFilteredPokemons(data)
-      setLoading(false)
+      setLoading(true)
+      try {
+        const data = await getPokemons()
+        setPokemons(data)
+        setFilteredPokemons(data)
+      } catch (error) {
+        console.error("Error al obtener los pokemons", error)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchData()
   }, [])
 
   useEffect(() => {
     const filtered = pokemons.filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) &&
-        (typeFilter === "" || p.types.includes(typeFilter))
+      (pokemon) =>
+        pokemon.name.toLowerCase().includes(search.toLowerCase()) &&
+        (filterType === "" || pokemon.types.includes(filterType))
     )
     setFilteredPokemons(filtered)
-  }, [search, typeFilter, pokemons])
+  }, [search, filterType, pokemons])
 
-  const handleOpenDetail = async (pokemon: Pokemon) => {
-    if (!pokemon.id) {
-      console.error("El Pokémon no tiene id:", pokemon)
-      return
-    }
-    setSelectedPokemon(pokemon)
-    setDetailLoading(true)
+  const handleOpenDetail = async (name: string) => {
     try {
-      const detail = await getPokemonDetail(pokemon.id)
-      setPokemonDetail(detail)
-    } catch {
-      setPokemonDetail(null)
-    } finally {
-      setDetailLoading(false)
+      const detail = await getPokemonDetail(name)
+      setSelectedPokemon(detail)
+    } catch (error) {
+      console.error("Error al obtener detalle", error)
     }
   }
 
   const handleCloseDetail = () => {
     setSelectedPokemon(null)
-    setPokemonDetail(null)
   }
 
-  if (loading) {
-    return (
-      <Container sx={{ mt: 8, textAlign: "center" }}>
-        <Typography variant="h5">Cargando pokémon...</Typography>
-      </Container>
-    )
+  const toggleMusic = () => {
+    if (!audioRef.current) return
+    if (audioPlaying) {
+      audioRef.current.pause()
+    } else {
+      audioRef.current.play()
+    }
+    setAudioPlaying(!audioPlaying)
   }
+
+  const allTypes = Array.from(new Set(pokemons.flatMap((p) => p.types)))
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
-      <Typography
-        variant="h3"
-        component="h1"
-        align="center"
-        gutterBottom
-        sx={{ fontWeight: "bold", textTransform: "uppercase", mb: 3 }}
+    <Box>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        gap={1}
+        mb={3}
       >
-        Pokédex
-      </Typography>
-
-      <Box sx={{ mb: 2 }}>
-        <SearchBar onSearch={setSearch} />
+        <CatchingPokemonIcon color="primary" fontSize="large" />
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            color: "#3949ab",
+          }}
+        >
+          Pokédex
+        </Typography>
       </Box>
 
-      <Box sx={{ mb: 4, maxWidth: 300 }}>
-        <FormControl fullWidth>
-          <InputLabel id="type-select-label">Filtrar por tipo</InputLabel>
+      <Box display="flex" gap={2} alignItems="center" mb={4} flexWrap="wrap">
+        <TextField
+          label="Buscar por nombre"
+          variant="outlined"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ flexGrow: 1, minWidth: 220 }}
+        />
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <InputLabel id="filter-type-label">Filtrar por tipo</InputLabel>
           <Select
-            labelId="type-select-label"
-            value={typeFilter}
+            labelId="filter-type-label"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
             label="Filtrar por tipo"
-            onChange={(e) => setTypeFilter(e.target.value)}
           >
             <MenuItem value="">Todos</MenuItem>
             {allTypes.map((type) => (
@@ -136,135 +135,144 @@ export default function Home() {
             ))}
           </Select>
         </FormControl>
+
+        <Tooltip title={audioPlaying ? "Pausar música" : "Reproducir música"}>
+          <IconButton
+            color={audioPlaying ? "secondary" : "primary"}
+            onClick={toggleMusic}
+            aria-label="Reproducir música de fondo"
+          >
+            <MusicNoteIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Typography
+          variant="subtitle1"
+          color={audioPlaying ? "secondary" : "textSecondary"}
+          sx={{ userSelect: "none" }}
+        >
+          Intro Latina
+        </Typography>
+
+        <audio ref={audioRef} src="/bg-music.mp3" loop preload="auto" />
       </Box>
 
-      {filteredPokemons.length === 0 ? (
-        <Typography variant="h6" align="center" color="text.secondary">
+      {loading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="40vh"
+        >
+          <CircularProgress />
+        </Box>
+      ) : filteredPokemons.length === 0 ? (
+        <Typography
+          variant="h6"
+          align="center"
+          color="text.secondary"
+          sx={{ mt: 4 }}
+        >
           No se encontraron pokémon que coincidan con tu búsqueda.
         </Typography>
       ) : (
-        <Grid container spacing={3} component="div" columns={12}>
+        <Grid container spacing={3}>
           {filteredPokemons.map((pokemon) => (
-            <Grid
-              key={pokemon.id}
-              xs={{ span: 12 }}
-              sm={{ span: 6 }}
-              md={{ span: 4 }}
-              lg={{ span: 3 }}
-              component="div"
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
-              <div
-                onClick={() => handleOpenDetail(pokemon)}
-                style={{ cursor: "pointer" }}
-              >
-                <PokemonCard pokemon={pokemon} />
-              </div>
+            <Grid item xs={12} sm={6} md={3} key={pokemon.name}>
+              <PokemonCard
+                pokemon={pokemon}
+                onClick={() => handleOpenDetail(pokemon.name)}
+              />
             </Grid>
           ))}
         </Grid>
       )}
 
-      <Modal
-        open={selectedPokemon !== null}
+      {/* Modal detalle Pokémon */}
+      <Dialog
+        open={!!selectedPokemon}
         onClose={handleCloseDetail}
-        aria-labelledby="pokemon-detail-title"
-        aria-describedby="pokemon-detail-description"
+        maxWidth="sm"
+        fullWidth
       >
-        <Box
-          sx={{
-            position: "absolute" as const,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            maxWidth: 400,
-            width: "90%",
-            borderRadius: 2,
-            outline: "none",
-            maxHeight: "90vh",
-            overflowY: "auto",
-          }}
-        >
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <IconButton onClick={handleCloseDetail}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          {detailLoading ? (
-            <Typography>Cargando detalles...</Typography>
-          ) : pokemonDetail ? (
-            <>
-              <CardMedia
-                component="img"
-                height="200"
-                image={pokemonDetail.sprite}
-                alt={pokemonDetail.name}
-                sx={{ objectFit: "contain", mb: 2 }}
-              />
-              <Typography
-                id="pokemon-detail-title"
-                variant="h4"
-                sx={{
-                  textTransform: "capitalize",
-                  fontWeight: "bold",
-                  mb: 2,
-                  textAlign: "center",
-                }}
-              >
-                {pokemonDetail.name}
-              </Typography>
-              <Stack
-                direction="row"
-                spacing={1}
+        {selectedPokemon && (
+          <>
+            <DialogTitle
+              sx={{
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                backgroundColor: "#3949ab",
+                color: "#fff",
+              }}
+            >
+              {selectedPokemon.name}
+            </DialogTitle>
+            <DialogContent dividers>
+              <Box
+                display="flex"
                 justifyContent="center"
-                sx={{ mb: 2 }}
+                mb={2}
+                sx={{ userSelect: "none" }}
               >
-                {pokemonDetail.types.map((type) => (
+                <img
+                  src={selectedPokemon.image}
+                  alt={selectedPokemon.name}
+                  style={{ width: 180 }}
+                />
+              </Box>
+
+              <Typography variant="h6" gutterBottom>
+                Tipos:
+              </Typography>
+              <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
+                {selectedPokemon.types.map((type) => (
                   <Chip
                     key={type}
                     label={type}
                     sx={{
                       textTransform: "capitalize",
                       bgcolor: getTypeColor(type),
-                      color: "white",
+                      color: "#fff",
                       fontWeight: "bold",
                     }}
                   />
                 ))}
-              </Stack>
+              </Box>
 
-              <Typography variant="h6">Stats:</Typography>
-              {pokemonDetail.stats.map((stat) => (
-                <Typography key={stat.name} sx={{ textTransform: "capitalize" }}>
-                  {stat.name.replace("-", " ")}: {stat.base_stat}
-                </Typography>
-              ))}
-
-              <Typography variant="h6" sx={{ mt: 2 }}>
+              <Typography variant="h6" gutterBottom>
                 Habilidades:
               </Typography>
-              {pokemonDetail.abilities.map((ability) => (
-                <Typography
-                  key={ability}
-                  sx={{ textTransform: "capitalize" }}
-                >
-                  {ability.replace("-", " ")}
-                </Typography>
+              <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
+                {selectedPokemon.abilities.map((ab) => (
+                  <Chip key={ab} label={ab} color="info" />
+                ))}
+              </Box>
+
+              <Typography variant="h6" gutterBottom>
+                Stats:
+              </Typography>
+              {selectedPokemon.stats.map((stat) => (
+                <Box key={stat.name} mb={1}>
+                  <Typography>
+                    {stat.name.charAt(0).toUpperCase() + stat.name.slice(1)}:{" "}
+                    {stat.base}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(stat.base, 100)}
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Box>
               ))}
-            </>
-          ) : (
-            <Typography>Error al cargar detalles.</Typography>
-          )}
-        </Box>
-      </Modal>
-    </Container>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
+    </Box>
   )
 }
 
+// Función para colores según tipo Pokémon
 function getTypeColor(type: string) {
   const colors: Record<string, string> = {
     normal: "#A8A77A",
