@@ -5,6 +5,7 @@ import { Card, CardContent, CardMedia, Typography, Chip, Stack, Box } from "@mui
 
 interface PokemonCardProps {
   pokemon: {
+    id: number
     name: string
     url: string
     types: string[]
@@ -12,15 +13,14 @@ interface PokemonCardProps {
 }
 
 export default function PokemonCard({ pokemon }: PokemonCardProps) {
-  // Extraemos id del url para imagen oficial (https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/ID.png)
-  const id = pokemon.url.split("/").filter(Boolean).pop()
+  const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`
 
   return (
     <Card sx={{ maxWidth: 345, width: "100%", boxShadow: 3 }}>
       <CardMedia
         component="img"
         height="140"
-        image={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
+        image={imageUrl}
         alt={pokemon.name}
         sx={{ objectFit: "contain", bgcolor: "#f2f2f2", p: 2 }}
       />
